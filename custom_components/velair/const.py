@@ -65,6 +65,8 @@ SERVICE_RESUME = "resume"
 SERVICE_RESUME_ZONE = "resume_zone"
 SERVICE_ENABLE_ROOM_SENSOR_ASSIST = "enable_room_sensor_assist"
 SERVICE_DISABLE_ROOM_SENSOR_ASSIST = "disable_room_sensor_assist"
+# Fork deviation: switch one zone to the binary 35/5 output.
+SERVICE_SET_ROOM_SENSOR_ASSIST_OUTPUT = "set_room_sensor_assist_output"
 SERVICE_SET_DAILY_SCHEDULE = "set_daily_schedule"
 SERVICE_SET_HVAC_MODE = "set_hvac_mode"
 SERVICE_SET_TEMPERATURE = "set_temperature"

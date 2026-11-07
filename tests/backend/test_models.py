@@ -587,6 +587,7 @@ class ScheduleBlockNormalizationTest(unittest.TestCase):
                 "room_sensor_assist_deadband": 0.3,
                 "room_sensor_assist_max_delta": 2.0,
                 "room_sensor_assist_debounce_seconds": 20,
+                "room_sensor_assist_binary_output": False,
             },
         )
         self.assertFalse(data["zones"]["climate.bedroom"]["preconditioning"]["enabled"])

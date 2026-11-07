@@ -202,6 +202,7 @@ class PreconditioningData(TypedDict):
     room_sensor_assist_deadband: float
     room_sensor_assist_max_delta: float
     room_sensor_assist_debounce_seconds: int
+    room_sensor_assist_binary_output: bool
 
 
 class DerivedMetricData(TypedDict):
@@ -1938,6 +1939,12 @@ def normalize_preconditioning_data(raw_data: Any) -> PreconditioningData:
             DEFAULT_ROOM_SENSOR_ASSIST_DEBOUNCE_SECONDS,
             minimum=0,
             maximum=300,
+        ),
+        # Fork deviation from upstream 1.9.0-beta.8 (797f59a): deliver the physical
+        # limits (35/5) instead of `target + correction`. Default False keeps upstream
+        # behaviour, so the upstream test suite stays the safety net.
+        "room_sensor_assist_binary_output": bool(
+            data.get("room_sensor_assist_binary_output", False)
         ),
     }
 

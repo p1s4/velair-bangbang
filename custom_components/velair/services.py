@@ -54,6 +54,7 @@ from .const import (
     SERVICE_COPY_DAY_SCHEDULE,
     SERVICE_DISABLE_ROOM_SENSOR_ASSIST,
     SERVICE_ENABLE_ROOM_SENSOR_ASSIST,
+    SERVICE_SET_ROOM_SENSOR_ASSIST_OUTPUT,
     SERVICE_PAUSE,
     SERVICE_PAUSE_ZONE,
     SERVICE_RESUME,
@@ -303,6 +304,17 @@ CLEAR_SCHEDULE_SCHEMA = vol.Schema(
 ROOM_SENSOR_ASSIST_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+    }
+)
+
+# Fork deviation: per-zone switch between upstream's `target + correction` output and the
+# binary `physical max / physical min` output.
+ATTR_BINARY_OUTPUT = "binary_output"
+
+ROOM_SENSOR_ASSIST_OUTPUT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_BINARY_OUTPUT): cv.boolean,
     }
 )
 
@@ -669,6 +681,18 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         except ValueError as err:
             raise HomeAssistantError(str(err)) from err
 
+    async def async_set_room_sensor_assist_output(call: ServiceCall) -> None:
+        scheduler = _get_scheduler(hass)
+        entity_id = call.data[ATTR_ENTITY_ID]
+        _ensure_managed_entity(scheduler, entity_id)
+        try:
+            await scheduler.async_update_zone_preconditioning(
+                entity_id,
+                {"room_sensor_assist_binary_output": call.data[ATTR_BINARY_OUTPUT]},
+            )
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
+
     async def async_set_external_change_policy(call: ServiceCall) -> None:
         scheduler = _get_scheduler(hass)
         entity_id = call.data[ATTR_ENTITY_ID]
@@ -805,6 +829,12 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         SERVICE_DISABLE_ROOM_SENSOR_ASSIST,
         async_disable_room_sensor_assist,
         schema=ROOM_SENSOR_ASSIST_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_ROOM_SENSOR_ASSIST_OUTPUT,
+        async_set_room_sensor_assist_output,
+        schema=ROOM_SENSOR_ASSIST_OUTPUT_SCHEMA,
     )
     hass.services.async_register(
         DOMAIN,

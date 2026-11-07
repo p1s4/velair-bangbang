@@ -10594,6 +10594,34 @@ class VelairScheduler:
         desired_temperature = climate_temperature + correction
         temperature_step = self.get_temperature_step(entity_id)
         min_temperature, max_temperature = self.get_temperature_limits(entity_id)
+        if config.get("room_sensor_assist_binary_output"):
+            # Fork deviation: binary valve output, enabled per zone. The hysteresis phase
+            # already decides whether the room asks for heat, so deliver the physical
+            # limits instead of `target + correction`. The numeric caps and
+            # `scheduled_target_guard` below protect the scheduled setpoint, which this
+            # mode deliberately does not use.
+            heating = (
+                hysteresis_phase == "towards_upper"
+                if hysteresis_phase is not None
+                else error > 0
+            )
+            binary_temperature = max_temperature if heating else min_temperature
+            return _RoomSensorAssistTargetResult(
+                applied_temperature=binary_temperature,
+                assist_delta=round(abs(binary_temperature - target_temperature), 3),
+                applied_offset=round(binary_temperature - climate_temperature, 3),
+                requested_temperature=binary_temperature,
+                calculated_temperature=binary_temperature,
+                scheduled_target_guard=None,
+                limited_by=None,
+                limit_temperature=None,
+                hysteresis_phase=hysteresis_phase,
+                hysteresis_target=hysteresis_target,
+                deadband_low=deadband_low,
+                deadband_high=deadband_high,
+                pre_step_temperature=binary_temperature,
+                target_temp_step=temperature_step,
+            )
         neutral_auto_target = not fixed_direction and correction == 0
         calculated_temperature = (
             _room_sensor_assist_nearest_step_temperature(
