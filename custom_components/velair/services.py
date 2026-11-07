@@ -54,6 +54,7 @@ from .const import (
     SERVICE_COPY_DAY_SCHEDULE,
     SERVICE_DISABLE_ROOM_SENSOR_ASSIST,
     SERVICE_ENABLE_ROOM_SENSOR_ASSIST,
+    SERVICE_UPDATE_ZONE_PRECONDITIONING,
     SERVICE_SET_ROOM_SENSOR_ASSIST_OUTPUT,
     SERVICE_PAUSE,
     SERVICE_PAUSE_ZONE,
@@ -310,11 +311,21 @@ ROOM_SENSOR_ASSIST_SCHEMA = vol.Schema(
 # Fork deviation: per-zone switch between upstream's `target + correction` output and the
 # binary `physical max / physical min` output.
 ATTR_BINARY_OUTPUT = "binary_output"
+ATTR_PRECONDITIONING = "preconditioning"
 
 ROOM_SENSOR_ASSIST_OUTPUT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_BINARY_OUTPUT): cv.boolean,
+    }
+)
+
+# Fork deviation: headless counterpart of the panel's `velair/update_zone_preconditioning`
+# websocket command, so a zone can be configured without the frontend.
+UPDATE_ZONE_PRECONDITIONING_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_PRECONDITIONING): dict,
     }
 )
 
@@ -693,6 +704,18 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         except ValueError as err:
             raise HomeAssistantError(str(err)) from err
 
+    async def async_update_zone_preconditioning(call: ServiceCall) -> None:
+        scheduler = _get_scheduler(hass)
+        entity_id = call.data[ATTR_ENTITY_ID]
+        _ensure_managed_entity(scheduler, entity_id)
+        try:
+            await scheduler.async_update_zone_preconditioning(
+                entity_id,
+                dict(call.data[ATTR_PRECONDITIONING]),
+            )
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
+
     async def async_set_external_change_policy(call: ServiceCall) -> None:
         scheduler = _get_scheduler(hass)
         entity_id = call.data[ATTR_ENTITY_ID]
@@ -835,6 +858,12 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         SERVICE_SET_ROOM_SENSOR_ASSIST_OUTPUT,
         async_set_room_sensor_assist_output,
         schema=ROOM_SENSOR_ASSIST_OUTPUT_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_UPDATE_ZONE_PRECONDITIONING,
+        async_update_zone_preconditioning,
+        schema=UPDATE_ZONE_PRECONDITIONING_SCHEMA,
     )
     hass.services.async_register(
         DOMAIN,

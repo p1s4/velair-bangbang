@@ -67,6 +67,8 @@ SERVICE_ENABLE_ROOM_SENSOR_ASSIST = "enable_room_sensor_assist"
 SERVICE_DISABLE_ROOM_SENSOR_ASSIST = "disable_room_sensor_assist"
 # Fork deviation: switch one zone to the binary 35/5 output.
 SERVICE_SET_ROOM_SENSOR_ASSIST_OUTPUT = "set_room_sensor_assist_output"
+# Fork deviation: headless zone preconditioning update (sensor, deadband, binary output).
+SERVICE_UPDATE_ZONE_PRECONDITIONING = "update_zone_preconditioning"
 SERVICE_SET_DAILY_SCHEDULE = "set_daily_schedule"
 SERVICE_SET_HVAC_MODE = "set_hvac_mode"
 SERVICE_SET_TEMPERATURE = "set_temperature"
